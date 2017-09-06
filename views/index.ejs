@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <style>
+    	*{
+    		margin: 0;
+    		padding: 0;
+    	}
+    	#info{
+    		margin: 10px auto;
+    		width: 90%;
+    		height: 300px;
+    		border: 1px solid #333;
+    	}
+    	footer{
+    		margin: 10px auto;
+    		width: 90%;
+    	}
+    	#send{
+    		width: 100px;
+    		padding: 10px;
+    		margin-top: 10px;
+    	}
+    </style>
+</head>
+
+<body>
+
+
+	<div id="info"></div>
+	
+	<footer>
+		消息：<input type="text" id="txt">
+		昵称：<input type="text" id="nickname"><br>
+		<button id="send">发送</button>
+	</footer>
+	
+	
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://code.jquery.com/jquery-3.2.1.js"></script>
+    <script>
+    var socket = io.connect('http://localhost:3000');
+    var userRandomId = getRandom();
+    var joinTime = new Date()*1
+	socket.emit("login",{code:0,userid:joinTime + userRandomId,jointime:joinTime,msg:"新用户登录"});
+    $("#send").click(function(){
+    	var name = $("#nickname").val() || "匿名用户";
+    	var msg = $("#txt").val() || "11"
+    	socket.emit("clientSend",{nickname:name,msg:msg})
+    })
+
+	socket.on('loginReturn', function(data) {
+        console.log(data);
+        $("#info").html("登录聊天室成功！<br />当前在线人数<b id='userCount'>" + data.onlineCount + "</b> 人。<br />")
+    });
+    
+    socket.on('userexit', function(data) {
+        console.log(data);
+        $("#userCount").html(data.onlineCount);
+        $("#info").append(data.outUser.username + "退出！<br />")
+    });
+
+    socket.on('serverSend', function(data) {
+        console.log(data);
+        $("#info").append(data.nickname + ": "+ data.msg +"<br />")
+    });
+
+    function getRandom (){
+    	return (Math.random()+"").substr(3,4);
+    }
+
+    
+    </script>
+</body>
+
+</html>
